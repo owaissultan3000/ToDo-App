@@ -1,10 +1,9 @@
 <template>
 <div class="container">
-<Header @toggle-task="toogleTask" title="Todo App"/>
+<Header @toggle-task="toogleTask" :showaddTask="showaddTask" title="Todo App"/>
 <div v-if="showaddTask">
 <AddTask @add-task="addTask"/>
 </div>
-
 <Tasks @toggle-remainder="toggleRemainder" @delete-task="deleteTask" :tasks="tasks"/>
 </div>
   
