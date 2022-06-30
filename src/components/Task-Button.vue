@@ -8,8 +8,14 @@ export default {
     
     name:"Task-Button",
     props:{
-        text:String,
-        color:String,
+        text:{
+    default: "",
+    type: String
+            },
+        color:{
+    default: "",
+    type: String
+            }       
     },
     methods:{
         onClick()

@@ -1,18 +1,22 @@
 <template>
-<div class="container">
+<div v-if="control"  class="login">
+<Login @auth-token="setToken"/>
+</div>
+
+<div v-else-if="!control" class="container" >
 <Header @toggle-task="toogleTask" :showaddTask="showaddTask" title="Todo App"/>
 <div v-if="showaddTask">
 <AddTask @add-task="addTask"/>
 </div>
 <Tasks @toggle-remainder="toggleRemainder" @delete-task="deleteTask" :tasks="tasks"/>
 </div>
-  
 </template>
 
 <script>
 import Header from './components/Task-Header'
 import Tasks from './components/Tasks-Preview'
 import AddTask from './components/Add-Task'
+import Login from './components/user-login'
 
 
 
@@ -21,16 +25,24 @@ export default {
   components: {
     Header,
     Tasks,
-    AddTask
+    AddTask,
+    Login
   },
   data()
   {
     return{
       tasks:[],
-      showaddTask:false
+      showaddTask:false,
+      authToken:"",
+      control:true,
     }
   },
   methods: {
+    setToken(token)
+    {
+      this.authToken = token
+      this.control = false
+    },
     deleteTask(id)
     {
       if(confirm("Are you sure you want to delete this task?"))
@@ -96,6 +108,17 @@ body {
   border: 1px solid steelblue;
   padding: 30px;
   border-radius: 5px;
+  margin-top: 150px;
+}
+.login {
+  max-width: 500px;
+  margin: 50px auto;
+  overflow: auto;
+  min-height: 500px;
+  border: 2px solid green;
+  padding: 30px;
+  border-radius: 5px;
+  margin-top: 150px;
 }
 .btn {
   display: inline-block;
