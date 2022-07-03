@@ -18,6 +18,9 @@
     </div>
     <br>
     <button type="submit" class="btn" >Login</button>
+    <br>
+    <i v-if="token" class="fa fa-spinner fa-spin" style="font-size:35px;color:green;margin-left: 180px;margin-top: 10px;"></i>
+
    
   </form>
 </template>
@@ -27,6 +30,7 @@
         name: 'user-login',
         data() {
             return {
+                token:false,
                 input: {
                     username: "",
                     password: ""
@@ -39,6 +43,7 @@
            async login() {
                
                 if(this.input.username != "" && this.input.password != "") {
+                    this.token = true
 
                 await fetch("http://localhost:8000/api/login/", {
                     method: "POST",
@@ -50,7 +55,9 @@
                 })
                     .then((response) => response.json())
                     .then((data) => {
-                        this.$emit("auth-token",data.token)
+                        
+                        this.$emit("user-cradentials",data)
+                        
                     });
 
                 } else {

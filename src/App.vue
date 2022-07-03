@@ -1,14 +1,15 @@
 <template>
-<div v-if="control"  class="login">
-<Login @auth-token="setToken"/>
+<div v-if="!authToken"  class="login">
+<Login @user-cradentials="setToken"/>
 </div>
 
-<div v-else-if="!control" class="container" >
+<div v-else-if="authToken" class="container" >
 <Header @toggle-task="toogleTask" :showaddTask="showaddTask" title="Todo App"/>
 <div v-if="showaddTask">
 <AddTask @add-task="addTask"/>
 </div>
 <Tasks @toggle-remainder="toggleRemainder" @delete-task="deleteTask" :tasks="tasks"/>
+<Logout @remove-token="logout"/>
 </div>
 </template>
 
@@ -17,8 +18,7 @@ import Header from './components/Task-Header'
 import Tasks from './components/Tasks-Preview'
 import AddTask from './components/Add-Task'
 import Login from './components/user-login'
-
-
+import Logout from './components/Logout-btn'
 
 export default {
   name: 'App',
@@ -26,7 +26,8 @@ export default {
     Header,
     Tasks,
     AddTask,
-    Login
+    Login,
+    Logout
   },
   data()
   {
@@ -34,29 +35,100 @@ export default {
       tasks:[],
       showaddTask:false,
       authToken:"",
-      control:true,
+      userData:{}
     }
   },
   methods: {
-    setToken(token)
-    {
-      this.authToken = token
-      this.control = false
+    async getTasks(){
+      const id = this.userData['id']
+      const url = 'http://127.0.0.1:8000/api/todo-task/'+ id
+      await fetch(url, {
+                    method: "GET",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        Object.values(data.data).forEach(item => this.tasks.push(item))
+                    });
+
     },
-    deleteTask(id)
+   async setToken(data)
     {
+      this.authToken = data.token;
+      this.userData = data;
+      this.tasks=[]
+      this.getTasks()
+    },
+    
+    async logout()
+    {
+      if(this.authToken != "") {
+                await fetch("http://localhost:8000/api/logout/", {
+                    method: "POST",
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',  
+                    'Authorization':'Token ' + this.authToken,
+                    },
+                })
+                    .then(() => {
+                      this.authToken=""
+                      this.tasks=[]
+                      console.clear()
+                      
+                    });
+
+                } else {
+                    console.log("Something went wrong. Please try agains");
+                }
+    },
+   async deleteTask(id)
+    {
+      
       if(confirm("Are you sure you want to delete this task?"))
       {
           this.tasks = this.tasks.filter((task) =>task.id !== id )
+          const url = 'http://127.0.0.1:8000/api/todo-task/'+ id
+          await fetch(url, {
+                    method: "DELETE",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data)
+                    });
       }
     },
     toggleRemainder(id)
     {
       this.tasks = this.tasks.map((task) => task.id === id ? {...task,reminder:!task.reminder} : task)
     },
-    addTask(task)
+    async addTask(task)
     {
       this.tasks = [...this.tasks,task]
+     let data = {
+        "userid":Number(this.userData['id']),
+        "text": task.text,
+        "day": task.day,
+        "reminder": Boolean(task.reminder)
+}
+      if(this.authToken != "") {
+                await fetch("http://127.0.0.1:8000/api/todo-task/", {
+                    method: "POST",
+                    headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    'Authorization':'Token ' + this.authToken,
+                    },
+                    body: JSON.stringify(data)
+
+                })
+                    .then((data) => {
+                      console.log(data)
+                    });
+
+                } else {
+                    console.log("Something went wrong. Please try agains");
+                }
+
     },
     toogleTask()
     {
@@ -65,26 +137,6 @@ export default {
   },
   created()
   {
-    this.tasks = [
-     {
-      id: 1,
-      text: 'Doctors Appointment',
-      day: "March 1st at 2:30pm",
-      reminder: true,
-    },
-     {
-      id: 2,
-      text: 'Assignment',
-      day: "March 1st at 3:30pm",
-      reminder: false,
-    },
-     {
-      id: 3,
-      text: 'Maintanence',
-      day: "March 1st at 4:30pm",
-      reminder: true,
-    },
-  ]
   }
 }
 </script>
